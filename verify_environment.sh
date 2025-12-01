@@ -3,17 +3,20 @@
 # Exits non-zero if blocking issues are found so users know what to fix first.
 
 set -euo pipefail                        # "-e" aborts on errors, "-u" aborts on unset variables, and "pipefail" propagates pipeline failures, so the script halts on any unexpected condition.
+# "set" flags apply to the current shell; using them near the top ensures every function inherits the strictness.
 
 MISSING=()                               # Declare an empty bash array (using parentheses) to collect missing commands.
 ERRORS=()                                # Declare another array to collect resource/KVM problems encountered during checks.
 
 section() {                              # Define a function (name followed by parentheses) that prints section headers.
   echo "\n=== $1 ==="                     # "\n" prints a blank line; "$1" expands the function's first argument inside the echoed header.
+  # Double quotes keep the entire string (including spaces and backslashes) from being word-split by the shell.
 }
 
 check_cmd() {                            # Define a function that validates a command's presence in PATH.
   local cmd="$1"                        # "local" limits the variable scope to the function; "$1" captures the command name argument.
-  if command -v "$cmd" >/dev/null 2>&1; then   # "command -v" resolves the executable path; redirection hides output while the "if" tests success.
+  if command -v "$cmd" >/dev/null 2>&1; then   # "command -v" resolves the executable path; redirection hides both stdout and stderr while the "if" tests success.
+    # "2>&1" merges stderr into stdout; with the combined stream redirected to /dev/null, the check runs quietly while still leveraging the exit code.
     echo "[OK] $cmd found at $(command -v "$cmd")"   # Command substitution "$(...)" embeds the resolved path within the message.
   else
     echo "[MISSING] $cmd"               # Mark the command as absent so the user knows what to install.
@@ -25,6 +28,7 @@ check_disk_space() {                     # Function to ensure sufficient free di
   section "Disk space"                  # Invoke section() with a quoted string to avoid word-splitting.
   local available_gb                     # Declare a local variable to store free space as an integer.
   available_gb=$(df -PB1G . | awk 'NR==2 {print $4}')   # Command substitution runs "df" with block size in GiB, pipes to awk to pick the free-space column.
+  # The single quotes around the awk program prevent the braces and dollar signs from being interpreted by the calling shell.
   echo "Available space: ${available_gb}G"             # "${var}" expands the variable within the string; braces clarify the boundary before the trailing "G".
   if [[ ${available_gb} -lt 15 ]]; then  # "[[ ... ]]" performs a bash test; "-lt" compares integers for less-than.
     ERRORS+=("At least 15G free disk space recommended; only ${available_gb}G available.")  # Append a descriptive error if below threshold.
@@ -35,6 +39,7 @@ check_memory() {                         # Function to confirm enough RAM exists
   section "Memory"                      # Print a labeled section header.
   local available_kb available_gb        # Declare two locals on one line for raw and converted memory values.
   available_kb=$(grep MemAvailable /proc/meminfo | awk '{print $2}')   # Use grep to select MemAvailable and awk to print the numeric kilobyte value.
+  # The curly braces inside awk delimit the action block; "$2" inside single quotes refers to the second whitespace-delimited field.
   available_gb=$(awk -v kb="$available_kb" 'BEGIN {printf "%.1f", kb/1024/1024}')  # Pass the kB via "-v" into awk and format to one decimal gigabytes.
   echo "Available memory: ${available_gb}G"           # Echo the computed gigabyte figure for transparency.
   local threshold_kb=$((12*1024*1024))   # Arithmetic expansion "$((...))" calculates the 12 GiB threshold in kilobytes.
@@ -50,6 +55,7 @@ check_virtualization() {                 # Function to verify KVM hardware accel
   else
     echo "[WARN] /dev/kvm not present"  # Warn that KVM may be unusable.
     if grep -Eiq 'vmx|svm' /proc/cpuinfo; then   # "grep -E" uses extended regex to find Intel/AMD virtualization flags; "-i" ignores case, "-q" suppresses output for boolean use.
+      # The pattern alternation "vmx|svm" matches either vendor's flag, and reading /proc/cpuinfo avoids needing root.
       echo "CPU virtualization flags detected, but KVM device missing (is kvm module loaded?)."   # Hardware appears capable but kernel/module configuration may be missing.
       ERRORS+=("/dev/kvm missing; ensure KVM modules are loaded and user has permissions.")        # Add actionable guidance to the ERRORS array.
     else
