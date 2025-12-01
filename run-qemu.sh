@@ -1,10 +1,12 @@
 #!/bin/bash
 
-while getopts wv opt; do
+while getopts wvm opt; do
     case $opt in
         w) opt_rw="SET"
         ;;
         v) opt_vanilla="SET"
+        ;;
+        p) opt_mosaic="SET"
         ;;
     esac
 done
@@ -20,9 +22,11 @@ ROOT="root=/dev/sda rw --no-log"
 NCPUS=2
 
 if [[ "$opt_vanilla" = "SET" ]]; then
-    KERNEL=/media/pravesh/Storage/code/sims/kdev/linux-5.15.180/arch/x86_64/boot/bzImage
+    KERNEL=./vanila/arch/x86_64/boot/bzImage
+if [[ "$opt_mosaic" = "SET" ]]; then
+    KERNEL=./mosaic/arch/x86_64/boot/bzImage
 else
-    KERNEL=/media/pravesh/Storage/code/sims/kdev/linux/arch/x86_64/boot/bzImage
+    KERNEL=./kdev/arch/x86_64/boot/bzImage
 fi
 
 set -x

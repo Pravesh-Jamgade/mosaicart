@@ -25,4 +25,4 @@ git clone "$OUR_URL"
 # make -C linux
 # make -C linux-5.11.6
 
-mkae -C kdev
+make -C kdev
