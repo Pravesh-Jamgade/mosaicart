@@ -33,6 +33,8 @@ This script will create a 10GB VM image and copy workload binaries and scripts i
 $ ./create_kvm_disk.sh
 ```
 
+If the command fails, verify that `qemu-img`, `debootstrap`, and `sudo` are installed and that you have at least 15GB of free disk space plus 12GB of available RAM for the build. The preflight script below will report any missing prerequisites before you start a long download/build step.
+
 ## Run KVM
 
 ```
@@ -69,3 +71,12 @@ $ ./process.sh
 $ cat table3.csv
 $ cat table4.csv
 ```
+
+## Troubleshooting when the VM fails to start
+
+Run a quick environment preflight from the repo root:
+```
+$ ./verify_environment.sh
+```
+
+The script checks that `qemu-img`, `qemu-system-x86_64`, and `debootstrap` are installed, confirms `/dev/kvm` is available, and ensures you have enough free disk and memory to create the VM image. Resolve any reported issues (e.g., install the missing package or enable KVM) and re-run the check before retrying `create_kvm_disk.sh` or `run-qemu.sh`.
