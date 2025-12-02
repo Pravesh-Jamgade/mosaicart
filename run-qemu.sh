@@ -6,7 +6,7 @@ while getopts wvm opt; do
         ;;
         v) opt_vanilla="SET"
         ;;
-        p) opt_mosaic="SET"
+        m) opt_mosaic="SET"
         ;;
     esac
 done
