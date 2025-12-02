@@ -31,7 +31,7 @@ fi
 
 set -x
 
-qemu-system-x86_64 -enable-kvm -cpu host -m 12G -smp $NCPUS -hda disk.img -kernel $KERNEL \
+qemu-system-x86_64 -enable-kvm -cpu host -m 12G -smp $NCPUS -hda disk.img,format=raw -kernel $KERNEL \
 	-append "nokaslr $CONSOLE $ROOT" \
 	-nographic $SNAPSHOT $SERIAL
 
