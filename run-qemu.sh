@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 while getopts wvm opt; do
     case $opt in
@@ -23,7 +23,7 @@ NCPUS=2
 
 if [[ "$opt_vanilla" = "SET" ]]; then
     KERNEL=./vanila/arch/x86_64/boot/bzImage
-if [[ "$opt_mosaic" = "SET" ]]; then
+elif [[ "$opt_mosaic" = "SET" ]]; then
     KERNEL=./mosaic/arch/x86_64/boot/bzImage
 else
     KERNEL=./kdev/arch/x86_64/boot/bzImage
